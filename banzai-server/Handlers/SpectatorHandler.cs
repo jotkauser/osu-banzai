@@ -35,8 +35,8 @@ public class SpectatorHandler
         if (session.SpectatingUserId == targetId)
         {
             // Re-spectating same host (player downloaded the map)
-            host.Enqueue(LoginResponseBuilder.SpectatorJoined((int)session.UserId));
-            var joined = LoginResponseBuilder.FellowSpectatorJoined((int)session.UserId);
+            host.Enqueue(BanchoPackets.SpectatorJoined((int)session.UserId));
+            var joined = BanchoPackets.FellowSpectatorJoined((int)session.UserId);
             foreach (var sid in host.SpectatorIds.Keys)
             {
                 if (sid == session.UserId) continue;
@@ -68,7 +68,7 @@ public class SpectatorHandler
     {
         if (session.SpectatorIds.Count > 0)
         {
-            var framePacket = LoginResponseBuilder.SpectateFrames(data);
+            var framePacket = BanchoPackets.SpectateFrames(data);
             _sessions.EnqueueToSpectators(session.UserId, framePacket);
         }
         return Task.CompletedTask;
@@ -83,7 +83,7 @@ public class SpectatorHandler
         if (host == null)
             return Task.CompletedTask;
 
-        var cantPacket = LoginResponseBuilder.SpectatorCantSpectate((int)session.UserId);
+        var cantPacket = BanchoPackets.SpectatorCantSpectate((int)session.UserId);
         host.Enqueue(cantPacket);
         _sessions.EnqueueToSpectators(host.UserId, cantPacket);
         return Task.CompletedTask;
@@ -109,7 +109,7 @@ public class SpectatorHandler
                 if (_sessions.GetByUserId(sid) is { } spec)
                 {
                     spec.SpectatingUserId = null;
-                    spec.Enqueue(LoginResponseBuilder.SpectatorLeft((int)session.UserId));
+                    spec.Enqueue(BanchoPackets.SpectatorLeft((int)session.UserId));
                 }
                 _sessions.LeaveChannel(channelName, sid);
             }
@@ -125,21 +125,21 @@ public class SpectatorHandler
         if (host.SpectatorIds.Count == 0)
         {
             _sessions.JoinChannel(channelName, host);
-            host.Enqueue(LoginResponseBuilder.ChannelJoinSuccess("#spectator"));
+            host.Enqueue(BanchoPackets.ChannelJoinSuccess("#spectator"));
         }
 
         _sessions.JoinChannel(channelName, spectator);
-        spectator.Enqueue(LoginResponseBuilder.ChannelJoinSuccess("#spectator"));
+        spectator.Enqueue(BanchoPackets.ChannelJoinSuccess("#spectator"));
 
-        host.Enqueue(LoginResponseBuilder.SpectatorJoined((int)spectator.UserId));
+        host.Enqueue(BanchoPackets.SpectatorJoined((int)spectator.UserId));
 
-        var newSpecJoined = LoginResponseBuilder.FellowSpectatorJoined((int)spectator.UserId);
+        var newSpecJoined = BanchoPackets.FellowSpectatorJoined((int)spectator.UserId);
         foreach (var sid in host.SpectatorIds.Keys)
         {
             if (_sessions.GetByUserId(sid) is { } existingSpec)
             {
                 existingSpec.Enqueue(newSpecJoined);
-                spectator.Enqueue(LoginResponseBuilder.FellowSpectatorJoined((int)sid));
+                spectator.Enqueue(BanchoPackets.FellowSpectatorJoined((int)sid));
             }
         }
 
@@ -147,7 +147,7 @@ public class SpectatorHandler
         spectator.SpectatingUserId = host.UserId;
 
         var count = host.SpectatorIds.Count + 1;
-        var chanInfo = LoginResponseBuilder.ChannelInfo("#spectator", $"{host.Username}'s spectator channel", count);
+        var chanInfo = BanchoPackets.ChannelInfo("#spectator", $"{host.Username}'s spectator channel", count);
         _sessions.EnqueueToChannel(channelName, chanInfo);
     }
 
@@ -160,20 +160,20 @@ public class SpectatorHandler
 
         _sessions.LeaveChannel(channelName, spectator.UserId);
 
-        host.Enqueue(LoginResponseBuilder.SpectatorLeft((int)spectator.UserId));
+        host.Enqueue(BanchoPackets.SpectatorLeft((int)spectator.UserId));
 
         if (host.SpectatorIds.Count == 0)
         {
             _sessions.LeaveChannel(channelName, host.UserId);
-            host.Enqueue(LoginResponseBuilder.ChannelKick("#spectator"));
+            host.Enqueue(BanchoPackets.ChannelKick("#spectator"));
         }
         else
         {
-            var leftPacket = LoginResponseBuilder.FellowSpectatorLeft((int)spectator.UserId);
+            var leftPacket = BanchoPackets.FellowSpectatorLeft((int)spectator.UserId);
             _sessions.EnqueueToChannel(channelName, leftPacket);
 
             var count = host.SpectatorIds.Count + 1;
-            var chanInfo = LoginResponseBuilder.ChannelInfo("#spectator", $"{host.Username}'s spectator channel", count);
+            var chanInfo = BanchoPackets.ChannelInfo("#spectator", $"{host.Username}'s spectator channel", count);
             _sessions.EnqueueToChannel(channelName, chanInfo);
         }
     }

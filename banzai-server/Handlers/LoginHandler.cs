@@ -55,8 +55,8 @@ public class LoginHandler
             await PacketSerializer.WritePacketAsync(ctx.Response.Body, packet);
 
         // Broadcast new player to existing online players
-        var presencePacket = LoginResponseBuilder.Presence(user.Id, user.Name, user.Privileges, 0);
-        var statsPacket = LoginResponseBuilder.Stats(user.Id, null);
+        var presencePacket = BanchoPackets.Presence(user.Id, user.Name, user.Privileges, 0);
+        var statsPacket = BanchoPackets.Stats(user.Id, null);
         _sessions.EnqueueToAllExcept(presencePacket, user.Id);
         _sessions.EnqueueToAllExcept(statsPacket, user.Id);
 
@@ -65,7 +65,7 @@ public class LoginHandler
         {
             _sessions.JoinChannel(ch.Name, session);
             var count = _sessions.GetChannelCount(ch.Name);
-            var update = LoginResponseBuilder.ChannelInfo(ch.Name, ch.Description, count);
+            var update = BanchoPackets.ChannelInfo(ch.Name, ch.Description, count);
             _sessions.EnqueueToChannel(ch.Name, update);
         }
     }

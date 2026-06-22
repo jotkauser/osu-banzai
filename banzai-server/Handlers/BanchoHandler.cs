@@ -82,13 +82,13 @@ public class BanchoHandler
                     foreach (var ch in channels)
                     {
                         var count = _sessions.GetChannelCount(ch.Name);
-                        var update = LoginResponseBuilder.ChannelInfo(ch.Name, ch.Description, count);
+                        var update = BanchoPackets.ChannelInfo(ch.Name, ch.Description, count);
                         _sessions.EnqueueToChannel(ch.Name, update);
                     }
                     ctx.Response.ContentType = "application/octet-stream";
                     return;
                 case 3:
-                    session.Enqueue(LoginResponseBuilder.Stats(session));
+                    session.Enqueue(BanchoPackets.Stats(session));
                     break;
                 case 63:
                     await _chat.HandleJoin(session, packet.Data);
@@ -132,7 +132,7 @@ public class BanchoHandler
         session.Mode = PacketSerializer.ReadU8(data, ref offset);
         session.MapId = PacketSerializer.ReadI32(data, ref offset);
 
-        var statsPacket = LoginResponseBuilder.Stats(session);
+        var statsPacket = BanchoPackets.Stats(session);
         _sessions.EnqueueToAllExcept(statsPacket, session.UserId);
     }
 }

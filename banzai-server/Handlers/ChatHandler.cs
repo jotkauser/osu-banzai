@@ -41,7 +41,7 @@ public class ChatHandler
             });
             await _db.SaveChangesAsync();
 
-            var msgPacket = LoginResponseBuilder.SendMessage(session.Username, trimmed, displayRecipient, (int)session.UserId);
+            var msgPacket = BanchoPackets.SendMessage(session.Username, trimmed, displayRecipient, (int)session.UserId);
             _sessions.EnqueueToChannel(targetChannel, msgPacket, exceptUserId: session.UserId);
         }
         catch (Exception ex)
@@ -59,10 +59,10 @@ public class ChatHandler
         {
             // #spectator channel — join the real channel directly
             _sessions.JoinChannel(resolved, session);
-            session.Enqueue(LoginResponseBuilder.ChannelJoinSuccess("#spectator"));
+            session.Enqueue(BanchoPackets.ChannelJoinSuccess("#spectator"));
 
             var count = _sessions.GetChannelCount(resolved);
-            var update = LoginResponseBuilder.ChannelInfo("#spectator", "Spectator channel", count);
+            var update = BanchoPackets.ChannelInfo("#spectator", "Spectator channel", count);
             _sessions.EnqueueToChannel(resolved, update);
             return;
         }
@@ -71,10 +71,10 @@ public class ChatHandler
         if (channel == null) return;
 
         _sessions.JoinChannel(channelName, session);
-        session.Enqueue(LoginResponseBuilder.ChannelJoinSuccess(channelName));
+        session.Enqueue(BanchoPackets.ChannelJoinSuccess(channelName));
 
         var dbCount = _sessions.GetChannelCount(channelName);
-        var dbUpdate = LoginResponseBuilder.ChannelInfo(channelName, channel.Description, dbCount);
+        var dbUpdate = BanchoPackets.ChannelInfo(channelName, channel.Description, dbCount);
         _sessions.EnqueueToChannel(channelName, dbUpdate);
     }
 
@@ -87,7 +87,7 @@ public class ChatHandler
         {
             _sessions.LeaveChannel(resolved, session.UserId);
             var count = _sessions.GetChannelCount(resolved);
-            var update = LoginResponseBuilder.ChannelInfo("#spectator", "Spectator channel", count);
+            var update = BanchoPackets.ChannelInfo("#spectator", "Spectator channel", count);
             _sessions.EnqueueToChannel(resolved, update);
             return;
         }
@@ -98,7 +98,7 @@ public class ChatHandler
         if (channel == null) return;
 
         var dbCount = _sessions.GetChannelCount(channelName);
-        var dbUpdate = LoginResponseBuilder.ChannelInfo(channelName, channel.Description, dbCount);
+        var dbUpdate = BanchoPackets.ChannelInfo(channelName, channel.Description, dbCount);
         _sessions.EnqueueToChannel(channelName, dbUpdate);
     }
 
