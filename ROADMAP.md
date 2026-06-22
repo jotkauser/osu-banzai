@@ -2,8 +2,8 @@
 
 ## Chat
 - [x] Public chat (send, receive, auto-join channels)
-- [ ] Direct messages
-- [ ] Offline DMs
+- [x] Direct messages
+- [x] Offline DMs
 - [ ] BanchoBot / commands
 - [ ] /np parsing
 
