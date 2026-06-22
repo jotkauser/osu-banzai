@@ -1,0 +1,40 @@
+services:
+  banzai-proxy:
+    image: nginx:stable-alpine
+    container_name: banzai-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./.docker/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - banzai-network
+
+  banzai-db:
+    image: postgres:18
+    container_name: banzai-db
+    environment:
+      POSTGRES_DB: banzai_osu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: developmentpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - banzai-db-data:/var/lib/postgresql
+    networks:
+      - banzai-network
+
+  banzai-redis:
+    image: redis:8
+    container_name: banzai-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - banzai-network
+
+volumes:
+  banzai-db-data:
+
+networks:
+  banzai-network:
