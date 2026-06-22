@@ -91,6 +91,11 @@ public static class PacketSerializer
             WriteI32(ms, id);
     }
 
+    public static byte ReadU8(byte[] data, ref int offset)
+    {
+        return data[offset++];
+    }
+
     public static int ReadI32(byte[] data, ref int offset)
     {
         var value = BitConverter.ToInt32(data, offset);

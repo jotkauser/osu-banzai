@@ -11,15 +11,17 @@ public class BanchoHandler
     private readonly SessionManager _sessions;
     private readonly LoginHandler _login;
     private readonly ChatHandler _chat;
+    private readonly SpectatorHandler _spectator;
 
     public BanchoHandler(BanzaiDbContext db, ISessionStore store, SessionManager sessions,
-        LoginHandler login, ChatHandler chat)
+        LoginHandler login, ChatHandler chat, SpectatorHandler spectator)
     {
         _db = db;
         _store = store;
         _sessions = sessions;
         _login = login;
         _chat = chat;
+        _spectator = spectator;
     }
 
     public async Task Handle(HttpContext ctx)
@@ -51,6 +53,7 @@ public class BanchoHandler
         {
             _sessions.Remove(p);
             _sessions.LeaveAllChannels(p.UserId);
+            _spectator.HandleDisconnect(p);
             await _store.RemoveSession(p.Token);
             _sessions.EnqueueToAll(LoginResponseBuilder.Logout(p.UserId));
         }
@@ -66,9 +69,13 @@ public class BanchoHandler
             {
                 case 4:
                     break;
+                case 0:
+                    HandleChangeAction(session, packet.Data);
+                    break;
                 case 2:
                     _sessions.Remove(session);
                     _sessions.LeaveAllChannels(session.UserId);
+                    _spectator.HandleDisconnect(session);
                     await _store.RemoveSession(token);
                     _sessions.EnqueueToAll(LoginResponseBuilder.Logout(session.UserId));
                     var channels = await _db.ChatChannels.ToListAsync();
@@ -81,7 +88,7 @@ public class BanchoHandler
                     ctx.Response.ContentType = "application/octet-stream";
                     return;
                 case 3:
-                    session.Enqueue(LoginResponseBuilder.Stats(session.UserId, null));
+                    session.Enqueue(LoginResponseBuilder.Stats(session));
                     break;
                 case 63:
                     await _chat.HandleJoin(session, packet.Data);
@@ -92,6 +99,18 @@ public class BanchoHandler
                 case 1:
                     await _chat.HandlePublicMessage(session, packet.Data);
                     break;
+                case 16:
+                    await _spectator.HandleStart(session, packet.Data);
+                    break;
+                case 17:
+                    await _spectator.HandleStop(session, packet.Data);
+                    break;
+                case 18:
+                    await _spectator.HandleFrames(session, packet.Data);
+                    break;
+                case 21:
+                    await _spectator.HandleCantSpectate(session, packet.Data);
+                    break;
                 default:
                     break;
             }
@@ -101,5 +120,19 @@ public class BanchoHandler
         var outbound = session.DrainOutbound();
         foreach (var packet in outbound)
             await PacketSerializer.WritePacketAsync(ctx.Response.Body, packet);
+    }
+
+    private void HandleChangeAction(PlayerSession session, byte[] data)
+    {
+        var offset = 0;
+        session.Action = PacketSerializer.ReadU8(data, ref offset);
+        session.InfoText = PacketSerializer.ReadString(data, ref offset);
+        session.MapMd5 = PacketSerializer.ReadString(data, ref offset);
+        session.Mods = PacketSerializer.ReadI32(data, ref offset);
+        session.Mode = PacketSerializer.ReadU8(data, ref offset);
+        session.MapId = PacketSerializer.ReadI32(data, ref offset);
+
+        var statsPacket = LoginResponseBuilder.Stats(session);
+        _sessions.EnqueueToAllExcept(statsPacket, session.UserId);
     }
 }

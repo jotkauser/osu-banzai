@@ -82,4 +82,21 @@ public class SessionManager
             if (kv.Key != exceptUserId)
                 kv.Value.Enqueue(packet);
     }
+
+    public void EnqueueToSpectators(long hostId, BanchoPacket packet, long? exceptUserId = null)
+    {
+        if (!_byUserId.TryGetValue(hostId, out var host)) return;
+        foreach (var sid in host.SpectatorIds.Keys)
+        {
+            if (sid == exceptUserId) continue;
+            if (_byUserId.TryGetValue(sid, out var spec))
+                spec.Enqueue(packet);
+        }
+    }
+
+    public int GetSpectatorCount(long hostId)
+    {
+        if (!_byUserId.TryGetValue(hostId, out var host)) return 0;
+        return host.SpectatorIds.Count;
+    }
 }

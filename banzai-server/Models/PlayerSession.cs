@@ -13,6 +13,16 @@ public class PlayerSession
     public byte Mode { get; set; } = 0;
     public DateTime LastRequest { get; set; } = DateTime.UtcNow;
 
+    public long? SpectatingUserId { get; set; }
+    public ConcurrentDictionary<long, byte> SpectatorIds { get; } = new();
+
+    // Current status from CHANGE_ACTION (packet 0)
+    public byte Action { get; set; }
+    public string InfoText { get; set; } = "";
+    public string MapMd5 { get; set; } = "";
+    public int Mods { get; set; }
+    public int MapId { get; set; } = -1;
+
     private readonly ConcurrentQueue<BanchoPacket> _outbound = new();
 
     public PlayerSession(string token, long userId, string username, int privileges)

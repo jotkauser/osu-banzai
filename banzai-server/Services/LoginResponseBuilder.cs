@@ -71,7 +71,7 @@ public static class LoginResponseBuilder
         {
             if (other.UserId == user.Id) continue;
             packets.Add(Presence(other.UserId, other.Username, other.Privileges, other.UtcOffset));
-            packets.Add(Stats(other.UserId, null));
+            packets.Add(Stats(other));
         }
 
         // 13. SEND_MESSAGE (7) — TODO: offline mail
@@ -100,6 +100,13 @@ public static class LoginResponseBuilder
         return new BanchoPacket(86, ms.ToArray());
     }
 
+    public static BanchoPacket SpectatorJoined(int userId) => I32(13, userId);
+    public static BanchoPacket SpectatorLeft(int userId) => I32(14, userId);
+    public static BanchoPacket SpectateFrames(byte[] rawData) => new(15, rawData);
+    public static BanchoPacket SpectatorCantSpectate(int userId) => I32(22, userId);
+    public static BanchoPacket FellowSpectatorJoined(int userId) => I32(42, userId);
+    public static BanchoPacket FellowSpectatorLeft(int userId) => I32(43, userId);
+
     public static BanchoPacket Logout(long userId)
     {
         using var ms = new MemoryStream();
@@ -127,6 +134,13 @@ public static class LoginResponseBuilder
         using var ms = new MemoryStream();
         PacketSerializer.WriteI32List(ms, ids);
         return new BanchoPacket(id, ms.ToArray());
+    }
+
+    public static BanchoPacket ChannelKick(string name)
+    {
+        using var ms = new MemoryStream();
+        PacketSerializer.WriteString(ms, name);
+        return new BanchoPacket(66, ms.ToArray());
     }
 
     public static BanchoPacket ChannelJoinSuccess(string name)
@@ -161,14 +175,26 @@ public static class LoginResponseBuilder
 
     public static BanchoPacket Stats(long userId, UserStat? stats)
     {
+        return BuildStats(userId, 0, "", "", 0, 0, -1, stats);
+    }
+
+    public static BanchoPacket Stats(PlayerSession session)
+    {
+        return BuildStats(session.UserId, session.Action, session.InfoText, session.MapMd5,
+            session.Mods, session.Mode, session.MapId, null);
+    }
+
+    private static BanchoPacket BuildStats(long userId, byte action, string infoText, string mapMd5,
+        int mods, byte mode, int mapId, UserStat? stats)
+    {
         using var ms = new MemoryStream();
         PacketSerializer.WriteI32(ms, (int)userId);
-        PacketSerializer.WriteU8(ms, 0);  // action = idle
-        PacketSerializer.WriteString(ms, "");
-        PacketSerializer.WriteString(ms, "");
-        PacketSerializer.WriteI32(ms, 0);  // mods
-        PacketSerializer.WriteU8(ms, 0);  // mode = osu!
-        PacketSerializer.WriteI32(ms, -1); // map id
+        PacketSerializer.WriteU8(ms, action);
+        PacketSerializer.WriteString(ms, infoText);
+        PacketSerializer.WriteString(ms, mapMd5);
+        PacketSerializer.WriteI32(ms, mods);
+        PacketSerializer.WriteU8(ms, mode);
+        PacketSerializer.WriteI32(ms, mapId);
         PacketSerializer.WriteI64(ms, stats?.RankedScore ?? 0);
         PacketSerializer.WriteF32(ms, stats != null ? (float)(stats.Accuracy / 100.0) : 0.0f);
         PacketSerializer.WriteI32(ms, stats?.Playcount ?? 0);
