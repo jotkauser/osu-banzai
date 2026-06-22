@@ -145,7 +145,7 @@ public static class LoginResponseBuilder
         return new BanchoPacket(65, ms.ToArray());
     }
 
-    private static BanchoPacket Presence(long userId, string username, int privileges, int utcOffset)
+    public static BanchoPacket Presence(long userId, string username, int privileges, int utcOffset)
     {
         using var ms = new MemoryStream();
         PacketSerializer.WriteI32(ms, (int)userId);

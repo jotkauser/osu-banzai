@@ -23,6 +23,8 @@ builder.Services.AddSingleton<ISessionStore>(_ =>
     ));
 
 builder.Services.AddSingleton<SessionManager>();
+builder.Services.AddScoped<LoginHandler>();
+builder.Services.AddScoped<ChatHandler>();
 builder.Services.AddScoped<BanchoHandler>();
 builder.Services.AddOpenApi();
 
