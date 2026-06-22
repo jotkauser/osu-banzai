@@ -3,9 +3,12 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\OsuController;
+use App\Http\Controllers\OsuDirectController;
+use App\Http\Controllers\PpyProxyController;
 use Illuminate\Support\Facades\Route;
 
-$host = parse_url(config('app.url'), PHP_URL_HOST);
+$appUrl = config('app.url');
+$host = parse_url($appUrl, PHP_URL_HOST);
 
 Route::domain($host)->group(function () {
     Route::get('/', function () {
@@ -22,9 +25,18 @@ Route::domain($host)->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 });
 
-Route::domain("osu.{$host}")->group(function () {
+Route::domain("osu.{$host}")->group(function () use ($appUrl) {
+    Route::redirect("/", "{$appUrl}");
     Route::get('/web/bancho_connect.php', [OsuController::class, 'banchoConnect']);
     Route::get('/web/osu-getseasonal.php', [OsuController::class, 'seasonal']);
     Route::get('/web/check-updates.php', [OsuController::class, 'checkUpdates']);
     Route::get('/web/osu-checktweets.php', [OsuController::class, 'checkTweets']);
+    Route::get('/web/osu-search.php', [OsuDirectController::class, 'search']);
+    Route::get('/web/osu-search-set.php', [OsuDirectController::class, 'searchSet']);
+    Route::get('/d/{setId}', [OsuDirectController::class, 'download'])->where('setId', '\d+n?');
+});
+
+Route::domain("b.{$host}")->group(function () {
+    Route::get("/thumb/{name}", [PpyProxyController::class, 'proxyThumbnail']);
+    Route::get("/preview/{name}", [PpyProxyController::class, 'proxySongPreview']);
 });
