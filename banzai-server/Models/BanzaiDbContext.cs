@@ -19,6 +19,8 @@ public partial class BanzaiDbContext : DbContext
 
     public virtual DbSet<ChatMessage> ChatMessages { get; set; }
 
+    public virtual DbSet<DirectMessage> DirectMessages { get; set; }
+
     public virtual DbSet<FailedJob> FailedJobs { get; set; }
 
     public virtual DbSet<Job> Jobs { get; set; }
@@ -28,6 +30,8 @@ public partial class BanzaiDbContext : DbContext
     public virtual DbSet<Migration> Migrations { get; set; }
 
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
+    public virtual DbSet<PendingDirectMessage> PendingDirectMessages { get; set; }
 
     public virtual DbSet<Session> Sessions { get; set; }
 
@@ -69,6 +73,17 @@ public partial class BanzaiDbContext : DbContext
             entity.HasOne(d => d.From).WithMany(p => p.ChatMessages).HasConstraintName("chat_messages_from_id_foreign");
         });
 
+        modelBuilder.Entity<DirectMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("direct_messages_pkey");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(d => d.From).WithMany(p => p.DirectMessageFroms).HasConstraintName("direct_messages_from_id_foreign");
+
+            entity.HasOne(d => d.To).WithMany(p => p.DirectMessageTos).HasConstraintName("direct_messages_to_id_foreign");
+        });
+
         modelBuilder.Entity<FailedJob>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("failed_jobs_pkey");
@@ -94,6 +109,17 @@ public partial class BanzaiDbContext : DbContext
         modelBuilder.Entity<PasswordResetToken>(entity =>
         {
             entity.HasKey(e => e.Email).HasName("password_reset_tokens_pkey");
+        });
+
+        modelBuilder.Entity<PendingDirectMessage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("pending_direct_messages_pkey");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne(d => d.From).WithMany(p => p.PendingDirectMessageFroms).HasConstraintName("pending_direct_messages_from_id_foreign");
+
+            entity.HasOne(d => d.To).WithMany(p => p.PendingDirectMessageTos).HasConstraintName("pending_direct_messages_to_id_foreign");
         });
 
         modelBuilder.Entity<Session>(entity =>

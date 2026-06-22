@@ -117,6 +117,9 @@ public class BanchoHandler
                 case 74:
                     await HandleFriendRemove(session, packet.Data);
                     break;
+                case 25:
+                    await HandlePrivateMessage(session, packet.Data);
+                    break;
                 default:
                     break;
             }
@@ -163,6 +166,41 @@ public class BanchoHandler
             _db.UserFriends.Remove(row);
             await _db.SaveChangesAsync();
         }
+    }
+
+    private async Task HandlePrivateMessage(PlayerSession session, byte[] data)
+    {
+        var (_, text, recipientName, _) = PacketSerializer.ReadMessage(data);
+
+        var trimmed = text.Trim();
+        if (string.IsNullOrEmpty(trimmed)) return;
+
+        if (trimmed.Length > 2000)
+            trimmed = trimmed[..2000];
+
+        var recipient = await _db.Users.FirstOrDefaultAsync(u => u.Name == recipientName);
+        if (recipient == null) return;
+
+        _db.DirectMessages.Add(new DirectMessage
+        {
+            FromId = session.UserId,
+            ToId = recipient.Id,
+            Message = trimmed,
+        });
+        _db.PendingDirectMessages.Add(new PendingDirectMessage
+        {
+            FromId = session.UserId,
+            ToId = recipient.Id,
+            FromName = session.Username,
+            Message = trimmed,
+        });
+        await _db.SaveChangesAsync();
+
+        var msgPacket = BanchoPackets.SendMessage(session.Username, trimmed, recipientName, (int)session.UserId);
+
+        // Deliver to recipient if online
+        if (_sessions.GetByUserId(recipient.Id) is { } targetSession)
+            targetSession.Enqueue(msgPacket);
     }
 
     private void HandleChangeAction(PlayerSession session, byte[] data)

@@ -52,6 +52,16 @@ public static class LoginResponseBuilder
             packets.Add(BanchoPackets.Stats(other));
         }
 
+        // Offline messages
+        var pendingMessages = await db.PendingDirectMessages
+            .Where(m => m.ToId == user.Id)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync();
+        foreach (var dm in pendingMessages)
+            packets.Add(BanchoPackets.SendMessage(dm.FromName, dm.Message, user.Name, (int)dm.FromId));
+        if (pendingMessages.Count > 0)
+            await db.PendingDirectMessages.Where(m => pendingMessages.Select(x => x.Id).Contains(m.Id)).ExecuteDeleteAsync();
+
         if ((user.Privileges & Normal) == 0)
             packets.Add(new BanchoPacket(104, [])); // ACCOUNT_RESTRICTED
 

@@ -49,6 +49,18 @@ public partial class User
     [InverseProperty("From")]
     public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
 
+    [InverseProperty("From")]
+    public virtual ICollection<DirectMessage> DirectMessageFroms { get; set; } = new List<DirectMessage>();
+
+    [InverseProperty("To")]
+    public virtual ICollection<DirectMessage> DirectMessageTos { get; set; } = new List<DirectMessage>();
+
+    [InverseProperty("From")]
+    public virtual ICollection<PendingDirectMessage> PendingDirectMessageFroms { get; set; } = new List<PendingDirectMessage>();
+
+    [InverseProperty("To")]
+    public virtual ICollection<PendingDirectMessage> PendingDirectMessageTos { get; set; } = new List<PendingDirectMessage>();
+
     [InverseProperty("Friend")]
     public virtual ICollection<UserFriend> UserFriendFriends { get; set; } = new List<UserFriend>();
 
