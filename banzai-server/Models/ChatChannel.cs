@@ -27,4 +27,7 @@ public partial class ChatChannel
 
     [Column("updated_at", TypeName = "timestamp(0) without time zone")]
     public DateTime? UpdatedAt { get; set; }
+
+    [InverseProperty("Channel")]
+    public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
 }

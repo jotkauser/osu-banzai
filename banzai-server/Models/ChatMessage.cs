@@ -1,10 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace banzai_server.Models;
 
 [Table("chat_messages")]
-public class ChatMessage
+public partial class ChatMessage
 {
     [Key]
     [Column("id")]
@@ -13,19 +16,21 @@ public class ChatMessage
     [Column("from_id")]
     public long FromId { get; set; }
 
-    [Column("channel_id")]
-    public long? ChannelId { get; set; }
-
     [Column("message")]
     [StringLength(2048)]
     public string Message { get; set; } = null!;
 
-    [Column("created_at")]
+    [Column("created_at", TypeName = "timestamp(0) without time zone")]
     public DateTime CreatedAt { get; set; }
 
-    [ForeignKey("FromId")]
-    public User? From { get; set; }
+    [Column("channel_id")]
+    public long? ChannelId { get; set; }
 
     [ForeignKey("ChannelId")]
-    public ChatChannel? Channel { get; set; }
+    [InverseProperty("ChatMessages")]
+    public virtual ChatChannel? Channel { get; set; }
+
+    [ForeignKey("FromId")]
+    [InverseProperty("ChatMessages")]
+    public virtual User From { get; set; } = null!;
 }

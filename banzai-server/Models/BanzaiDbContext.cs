@@ -33,6 +33,8 @@ public partial class BanzaiDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserFriend> UserFriends { get; set; }
+
     public virtual DbSet<UserStat> UserStats { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -58,13 +60,13 @@ public partial class BanzaiDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("chat_messages_pkey");
 
-            entity.HasOne(d => d.From).WithMany()
-                .HasForeignKey(d => d.FromId)
-                .HasConstraintName("chat_messages_from_id_foreign");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            entity.HasOne(d => d.Channel).WithMany()
-                .HasForeignKey(d => d.ChannelId)
+            entity.HasOne(d => d.Channel).WithMany(p => p.ChatMessages)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("chat_messages_channel_id_foreign");
+
+            entity.HasOne(d => d.From).WithMany(p => p.ChatMessages).HasConstraintName("chat_messages_from_id_foreign");
         });
 
         modelBuilder.Entity<FailedJob>(entity =>
@@ -106,7 +108,16 @@ public partial class BanzaiDbContext : DbContext
             entity.Property(e => e.Country)
                 .HasDefaultValueSql("'XX'::bpchar")
                 .IsFixedLength();
-            entity.Property(e => e.Privileges).HasDefaultValue(1);
+            entity.Property(e => e.Privileges).HasDefaultValue(5);
+        });
+
+        modelBuilder.Entity<UserFriend>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.FriendId }).HasName("user_friends_pkey");
+
+            entity.HasOne(d => d.Friend).WithMany(p => p.UserFriendFriends).HasConstraintName("user_friends_friend_id_foreign");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserFriendUsers).HasConstraintName("user_friends_user_id_foreign");
         });
 
         modelBuilder.Entity<UserStat>(entity =>

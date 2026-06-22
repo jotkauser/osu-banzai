@@ -33,7 +33,13 @@ public static class LoginResponseBuilder
 
         packets.Add(new BanchoPacket(89, [])); // CHANNEL_INFO_END
         packets.Add(String(76, "|")); // MAIN_MENU_ICON
-        packets.Add(List(72, [])); // FRIENDS_LIST
+
+        var friendIds = await db.UserFriends
+            .Where(f => f.UserId == user.Id)
+            .Select(f => (int)f.FriendId)
+            .ToArrayAsync();
+        packets.Add(List(72, friendIds)); // FRIENDS_LIST
+
         packets.Add(I32(92, 0)); // SILENCE_END
 
         packets.Add(BanchoPackets.Presence(user.Id, user.Name, privs, 0));

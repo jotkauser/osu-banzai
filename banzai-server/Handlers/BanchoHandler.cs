@@ -111,6 +111,12 @@ public class BanchoHandler
                 case 21:
                     await _spectator.HandleCantSpectate(session, packet.Data);
                     break;
+                case 73:
+                    await HandleFriendAdd(session, packet.Data);
+                    break;
+                case 74:
+                    await HandleFriendRemove(session, packet.Data);
+                    break;
                 default:
                     break;
             }
@@ -120,6 +126,43 @@ public class BanchoHandler
         var outbound = session.DrainOutbound();
         foreach (var packet in outbound)
             await PacketSerializer.WritePacketAsync(ctx.Response.Body, packet);
+    }
+
+    private async Task HandleFriendAdd(PlayerSession session, byte[] data)
+    {
+        var offset = 0;
+        var friendId = PacketSerializer.ReadI32(data, ref offset);
+
+        if (friendId == session.UserId)
+            return;
+
+        var exists = await _db.UserFriends.AnyAsync(f => f.UserId == session.UserId && f.FriendId == friendId);
+        if (!exists)
+        {
+            _db.UserFriends.Add(new UserFriend { UserId = session.UserId, FriendId = friendId });
+            await _db.SaveChangesAsync();
+        }
+
+        // Send the friend's current presence if they're online
+        if (_sessions.GetByUserId(friendId) is { } friend)
+        {
+            session.Enqueue(BanchoPackets.Presence(friend.UserId, friend.Username, friend.Privileges, friend.UtcOffset));
+            session.Enqueue(BanchoPackets.Stats(friend));
+        }
+    }
+
+    private async Task HandleFriendRemove(PlayerSession session, byte[] data)
+    {
+        var offset = 0;
+        var friendId = PacketSerializer.ReadI32(data, ref offset);
+
+        var row = await _db.UserFriends
+            .FirstOrDefaultAsync(f => f.UserId == session.UserId && f.FriendId == friendId);
+        if (row != null)
+        {
+            _db.UserFriends.Remove(row);
+            await _db.SaveChangesAsync();
+        }
     }
 
     private void HandleChangeAction(PlayerSession session, byte[] data)

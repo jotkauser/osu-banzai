@@ -46,6 +46,15 @@ public partial class User
     [Column("updated_at", TypeName = "timestamp(0) without time zone")]
     public DateTime? UpdatedAt { get; set; }
 
+    [InverseProperty("From")]
+    public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
+
+    [InverseProperty("Friend")]
+    public virtual ICollection<UserFriend> UserFriendFriends { get; set; } = new List<UserFriend>();
+
+    [InverseProperty("User")]
+    public virtual ICollection<UserFriend> UserFriendUsers { get; set; } = new List<UserFriend>();
+
     [InverseProperty("User")]
     public virtual ICollection<UserStat> UserStats { get; set; } = new List<UserStat>();
 }
