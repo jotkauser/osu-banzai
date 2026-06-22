@@ -9,9 +9,9 @@
 
 ## Bancho
 - [x] Bancho login / logout
-- [ ] Presence / status updates
-- [ ] Friends list
-- [ ] Spectating
+- [x] Presence / status updates
+- [x] Friends list
+- [x] Spectating
 - [ ] Multiplayer
 - [ ] IRC
 
@@ -23,7 +23,7 @@
 - [ ] Replays
 - [ ] Screenshots
 - [ ] In-game registration
-- [ ] osu!direct
+- [x] osu!direct
 
 ## Web
 - [ ] Web UI (home, login, register, profiles, leaderboards, beatmaps, admin)
