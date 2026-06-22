@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use App\Http\Middleware\OsuAuthenticateMiddleware;
 
 $rootEnv = dirname(__DIR__) . '/../.env';
 
@@ -21,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
+        ]);
+        $middleware->alias([
+            'osu.auth' => OsuAuthenticateMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

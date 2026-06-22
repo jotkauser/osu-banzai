@@ -32,8 +32,8 @@ Route::domain("osu.{$host}")->group(function () use ($appUrl) {
     Route::get('/web/osu-getseasonal.php', [OsuController::class, 'seasonal']);
     Route::get('/web/check-updates.php', [OsuController::class, 'checkUpdates']);
     Route::get('/web/osu-checktweets.php', [OsuController::class, 'checkTweets']);
-    Route::get('/web/osu-search.php', [OsuDirectController::class, 'search']);
-    Route::get('/web/osu-search-set.php', [OsuDirectController::class, 'searchSet']);
+    Route::get('/web/osu-search.php', [OsuDirectController::class, 'search'])->middleware('osu.auth');
+    Route::get('/web/osu-search-set.php', [OsuDirectController::class, 'searchSet'])->middleware('osu.auth');
     Route::get('/d/{setId}', [OsuDirectController::class, 'download'])->where('setId', '\d+n?');
 });
 

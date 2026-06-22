@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Http;
 
 class OsuDirectController extends Controller
 {
+    private const API_BASE = 'https://osu.direct';
+
     public function search(Request $request)
     {
         $params = [
@@ -29,7 +31,7 @@ class OsuDirectController extends Controller
             $params['status'] = $this->rankedStatus($status);
         }
 
-        $response = Http::get(env('MIRROR_SEARCH_ENDPOINT'), $params);
+        $response = Http::get(self::API_BASE . '/api/search', $params);
         if (!$response->successful()) {
             return response("-1\nFailed to retrieve data from the beatmap mirror.");
         }
@@ -76,27 +78,29 @@ class OsuDirectController extends Controller
 
     public function searchSet(Request $request)
     {
-        $params = [];
-        if ($id = $request->query('s')) $params['s'] = (int) $id;
-        if ($id = $request->query('b')) $params['b'] = (int) $id;
-        if ($hash = $request->query('c')) $params['c'] = $hash;
-
-        if (empty($params)) {
+        if ($id = $request->query('s')) {
+            $url = self::API_BASE . '/api/s/' . (int) $id;
+        } elseif ($id = $request->query('b')) {
+            $url = self::API_BASE . '/api/b/' . (int) $id . '/set';
+        } elseif ($hash = $request->query('c')) {
+            $url = self::API_BASE . '/api/md5/' . $hash;
+        } else {
             return response('');
         }
 
-        $response = Http::get(env('MIRROR_SEARCH_ENDPOINT'), $params);
+        $response = Http::get($url);
         if (!$response->successful()) {
             return response('');
         }
 
-        $sets = $response->json();
-        if (empty($sets)) {
+        $data = $response->json();
+        if (empty($data)) {
             return response('');
         }
 
-        $set = $sets[0];
-        if (empty($set['ChildrenBeatmaps'])) {
+        // API may return a single set or an array wrapping it
+        $set = isset($data['SetID']) ? $data : ($data[0] ?? null);
+        if ($set === null || empty($set['ChildrenBeatmaps'])) {
             return response('');
         }
 
@@ -135,7 +139,7 @@ class OsuDirectController extends Controller
         $noVideo = str_ends_with($setId, 'n');
         if ($noVideo) $setId = substr($setId, 0, -1);
 
-        $url = env('MIRROR_DOWNLOAD_ENDPOINT') . '/' . $setId . '?n=' . ($noVideo ? '1' : '0');
+        $url = self::API_BASE . '/api/d/' . $setId . '?n=' . ($noVideo ? '1' : '0');
 
         $response = Http::get($url);
         return response($response->body(), 200, [
@@ -148,10 +152,11 @@ class OsuDirectController extends Controller
     {
         return match ($directStatus) {
             0 => 1,  // Ranked
-            2 => 2,  // Approved
+            2 => 0,  // Pending
             3 => 3,  // Qualified
-            4 => 4,  // Loved
-            5 => 0,  // Pending
+            5 => 0,  // Graveyard
+            7 => 1,  // Played Before
+            8 => 4,  // Loved
             default => $directStatus,
         };
     }
