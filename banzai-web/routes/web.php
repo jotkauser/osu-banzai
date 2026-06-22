@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\OsuController;
 use App\Http\Controllers\OsuDirectController;
 use App\Http\Controllers\PpyProxyController;
+use App\Http\Controllers\UserAvatarController;
 use Illuminate\Support\Facades\Route;
 
 $appUrl = config('app.url');
@@ -39,4 +40,8 @@ Route::domain("osu.{$host}")->group(function () use ($appUrl) {
 Route::domain("b.{$host}")->group(function () {
     Route::get("/thumb/{name}", [PpyProxyController::class, 'proxyThumbnail']);
     Route::get("/preview/{name}", [PpyProxyController::class, 'proxySongPreview']);
+});
+
+Route::domain("a.{$host}")->group(function () {
+    Route::get("/{userId}", [UserAvatarController::class, 'getAvatar']);
 });
