@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->preventRequestForgery(except: [
             'web/osu-submit-modular*',
             'web/osu-getbeatmapinfo.php',
+            'users'
         ]);
         $middleware->alias([
             'osu.auth' => OsuAuthenticateMiddleware::class,

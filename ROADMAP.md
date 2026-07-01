@@ -22,7 +22,7 @@
 - [ ] Leaderboards
 - [ ] Replays
 - [ ] Screenshots
-- [ ] In-game registration
+- [x] In-game registration
 - [x] osu!direct
 
 ## Web

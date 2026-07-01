@@ -2,12 +2,9 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\MapLeaderboardController;
-use App\Http\Controllers\OsuController;
-use App\Http\Controllers\OsuDirectController;
-use App\Http\Controllers\PpyProxyController;
-use App\Http\Controllers\ScoreSubmissionController;
-use App\Http\Controllers\UserAvatarController;
+use App\Http\Controllers\OsuStable\InGameRegisterController;
+use App\Http\Controllers\OsuStable\PpyProxyController;
+use App\Http\Controllers\OsuStable\UserAvatarController;
 use Illuminate\Support\Facades\Route;
 
 $appUrl = config('app.url');
@@ -26,6 +23,10 @@ Route::domain($host)->group(function () {
     });
 
     Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+});
+
+Route::domain("osu.$host")->group(function () {
+    Route::post("/users", [InGameRegisterController::class, 'store']);
 });
 
 Route::domain("b.$host")->group(function () {

@@ -1,10 +1,10 @@
 <?php
 
 
-use App\Http\Controllers\MapLeaderboardController;
-use App\Http\Controllers\OsuController;
-use App\Http\Controllers\OsuDirectController;
-use App\Http\Controllers\ScoreSubmissionController;
+use App\Http\Controllers\OsuStable\MapLeaderboardController;
+use App\Http\Controllers\OsuStable\OsuController;
+use App\Http\Controllers\OsuStable\OsuDirectController;
+use App\Http\Controllers\OsuStable\ScoreSubmissionController;
 use Illuminate\Support\Facades\Route;
 
 $appUrl = config('app.url');

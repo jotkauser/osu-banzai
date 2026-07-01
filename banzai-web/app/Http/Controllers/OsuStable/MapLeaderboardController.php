@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\OsuStable;
 
 use App\Enums\OsuRuleset;
 use App\Enums\StableLeaderboardType;
+use App\Http\Controllers\Controller;
 use App\Models\Beatmap;
 use App\Services\BeatmapService;
 use Illuminate\Http\Request;

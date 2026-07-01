@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\OsuStable;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class UserAvatarController extends Controller
