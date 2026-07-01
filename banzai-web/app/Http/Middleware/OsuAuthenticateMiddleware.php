@@ -11,8 +11,8 @@ class OsuAuthenticateMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        $username = $request->query('u');
-        $passwordMd5 = $request->query('h');
+        $username = $request->query("us") ?? $request->query('u');
+        $passwordMd5 = $request->query('ha') ?? $request->query('h');
 
         if (empty($username) || empty($passwordMd5)) {
             return response('', 401);

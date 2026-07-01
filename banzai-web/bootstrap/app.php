@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\HandleInertiaRequests;
 use Dotenv\Dotenv;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,10 +19,19 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function () {
+            Route::middleware("api")
+                ->prefix("web")
+                ->group(base_path("routes/osu.php"));
+        }
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
+            HandleInertiaRequests::class,
+        ]);
+        $middleware->preventRequestForgery(except: [
+            'web/osu-submit-modular*',
+            'web/osu-getbeatmapinfo.php',
         ]);
         $middleware->alias([
             'osu.auth' => OsuAuthenticateMiddleware::class,
